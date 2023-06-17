@@ -2,6 +2,21 @@
 
 official implementation of sphereface2 for speaker verification in [Exploring Binary Classification Loss for Speaker Verification](https://ieeexplore.ieee.org/abstract/document/10094954), this code is based on [wespeaker](https://github.com/wenet-e2e/wespeaker)
 
+## Results
+
+| Model | Params | LM | AS-Norm | vox1-O-clean | vox1-E-clean | vox1-H-clean |
+|:------|:------:|:--:|:-------:|:------------:|:------------:|:------------:|
+| AAM + ResNet34-TSTP-emb256 | 6.63M | × | × | 0.867 | 1.049 | 1.959 |
+|                      |       | × | √ | 0.787 | 0.964 | 1.726 |
+|                      |       | √ | × | 0.797 | 0.937 | 1.695 |
+|                      |       | √ | √ | 0.723 | 0.867 | 1.532 |
+| Sphereface2 + ResNet34-TSTP-emb256 | 6.63M | × | × | 0.904 | 0.973 | 1.737 |
+|                      |       | × | √ | 0.835 | 0.931 | 1.652 |
+|                      |       | √ | × | - | - | - |
+|                      |       | √ | √ | - | - | - |
+
+
+
 ## Citations
 If you find its useful, please cite it as
 ```bibtex
