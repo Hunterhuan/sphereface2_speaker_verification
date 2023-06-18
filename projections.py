@@ -53,7 +53,10 @@ def get_projection(conf):
         projection = SphereFace2(conf['embed_dim'],
                                  conf['num_class'],
                                  scale=conf['scale'],
-                                 margin=0.0)
+                                 margin=0.0,
+                                 t=conf.get('t', 3),
+                                 lanbuda=conf.get('lanbuda', 0.7),
+                                 margin_type=conf.get('margin_type', 'C'))
     else:
         projection = Linear(conf['embed_dim'], conf['num_class'])
 
@@ -65,6 +68,11 @@ def fun_g(z, t: int):
 
 class SphereFace2(nn.Module):
     r"""Implement of sphereface2 for speaker verification:
+        Reference:
+            [1] Exploring Binary Classification Loss for Speaker Verification
+            https://ieeexplore.ieee.org/abstract/document/10094954
+            [2] Sphereface2: Binary classification is all you need for deep face recognition
+            https://arxiv.org/pdf/2108.01513
         Args:
             in_features: size of each input sample
             out_features: size of each output sample
@@ -72,55 +80,77 @@ class SphereFace2(nn.Module):
             margin: margin
             lanbuda: weight of positive and negative pairs
             t: parameter for adjust score distribution
-            
-            cos(theta + margin)
+            margin_type: A:cos(theta+margin) or C:cos(theta)-margin
+            recommend margin 0.2 for C and 0.15 for A
         """
 
     def __init__(self,
                  in_features,
                  out_features,
                  scale=32.0,
-                 margin=0.2,lanbuda=0.7, t=3):
+                 margin=0.2,
+                 lanbuda=0.7,
+                 t=3,
+                 margin_type='C'):
         super(SphereFace2, self).__init__()
         self.in_features = in_features
         self.out_features = out_features
         self.scale = scale
-        self.margin = margin
         self.weight = nn.Parameter(torch.FloatTensor(out_features,
                                                      in_features))
         nn.init.xavier_uniform_(self.weight)
         self.bias = nn.Parameter(torch.zeros(1, 1))
         self.t = t
         self.lanbuda = lanbuda
+        self.margin_type = margin_type
 
         ########
-        self.m = self.margin
+        self.margin = margin
+        self.cos_m = math.cos(margin)
+        self.sin_m = math.sin(margin)
+        self.th = math.cos(math.pi - margin)
+        self.mm = math.sin(math.pi - margin)
+        self.mmm = 1.0 + + math.cos(math.pi - margin)
         ########
 
     def update(self, margin=0.2):
         self.margin = margin
+        self.cos_m = math.cos(margin)
+        self.sin_m = math.sin(margin)
+        self.th = math.cos(math.pi - margin)
+        self.mm = math.sin(math.pi - margin)
+        self.mmm = 1.0 + + math.cos(math.pi - margin)
 
     def forward(self, input, label):
-        # implementation of mine
+        # compute similarity
         cos = F.linear(F.normalize(input), F.normalize(self.weight))
-        cos_m_theta = self.scale * (fun_g(cos, self.t) - self.margin) + self.bias[0][0]
-        cos_m_theta1 = self.scale * (fun_g(cos, self.t) + self.margin) + self.bias[0][0]
-        cos_p_theta = self.lanbuda * torch.log(1 + torch.exp(-1.0 * cos_m_theta))
-        cos_n_theta = (1-self.lanbuda) * torch.log(1 + torch.exp(cos_m_theta1))
+
+        if self.margin_type == 'A': # arcface type
+            sin = torch.sqrt(1.0 - torch.pow(cos, 2))
+            cos_m_theta_p = self.scale * fun_g(torch.where(cos > self.th, cos * self.cos_m - sin * self.sin_m, cos-self.mmm), self.t) + self.bias[0][0]
+            cos_m_theta_n = self.scale * fun_g(cos * self.cos_m + sin * self.sin_m, self.t) + self.bias[0][0]
+            cos_p_theta = self.lanbuda * torch.log(1 + torch.exp(-1.0 * cos_m_theta_p))
+            cos_n_theta =  (1-self.lanbuda) * torch.log(1 + torch.exp(cos_m_theta_n))
+        else: # cosface type
+            cos_m_theta_p = self.scale * (fun_g(cos, self.t) - self.margin) + self.bias[0][0]
+            cos_m_theta_n = self.scale * (fun_g(cos, self.t) + self.margin) + self.bias[0][0]
+            cos_p_theta = self.lanbuda * torch.log(1 + torch.exp(-1.0 * cos_m_theta_p))
+            cos_n_theta = (1-self.lanbuda) * torch.log(1 + torch.exp(cos_m_theta_n))
+
         target_mask = input.new_zeros(cos.size())
         target_mask.scatter_(1, label.view(-1, 1).long(), 1.0)
         nontarget_mask = 1 - target_mask
         cos1 = (cos - self.margin) * target_mask + cos * nontarget_mask
-        output = self.scale * cos1
+        output = self.scale * cos1 # for compute the accuracy
         loss = (target_mask * cos_p_theta + nontarget_mask * cos_n_theta).sum(1).mean()
         return output, loss
 
     def extra_repr(self):
         return '''in_features={}, out_features={}, scale={}, lanbuda={},
-                  margin={}, t={}'''.format(self.in_features,
+                  margin={}, t={}, margin_type={}'''.format(self.in_features,
                                                       self.out_features,
                                                       self.scale, self.lanbuda, self.margin,
-                                                      self.t)
+                                                      self.t, self.margin_type)
 
 class ArcMarginProduct(nn.Module):
     r"""Implement of large margin arc distance: :
