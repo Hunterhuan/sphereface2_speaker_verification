@@ -2,6 +2,11 @@
 
 official implementation of sphereface2 for speaker verification in [Exploring Binary Classification Loss for Speaker Verification](https://ieeexplore.ieee.org/abstract/document/10094954), this code is based on [wespeaker](https://github.com/wenet-e2e/wespeaker)
 
+### advantages:
+1. better performance, especially on hard trials
+2. robust to noisy labels
+3. natural parallelization for the classifier layer
+
 ## Results
 
 | Model | Params | LM | AS-Norm | vox1-O-clean | vox1-E-clean | vox1-H-clean |
