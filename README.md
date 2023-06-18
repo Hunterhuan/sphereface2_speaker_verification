@@ -12,8 +12,8 @@ official implementation of sphereface2 for speaker verification in [Exploring Bi
 |                      |       | √ | √ | 0.723 | 0.867 | 1.532 |
 | Sphereface2 + ResNet34-TSTP-emb256 | 6.63M | × | × | 0.904 | 0.973 | 1.737 |
 |                      |       | × | √ | 0.835 | 0.931 | 1.652 |
-|                      |       | √ | × | - | - | - |
-|                      |       | √ | √ | - | - | - |
+|                      |       | √ | × | 0.835 | 0.875 | 1.533 |
+|                      |       | √ | √ | 0.776 | 0.846 | 1.460 |
 
 
 
