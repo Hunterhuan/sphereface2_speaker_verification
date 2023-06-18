@@ -12,7 +12,7 @@ official implementation of sphereface2 for speaker verification in [Exploring Bi
 ResNet34-TSTP-emb256
 
 | Model | Margin | Params | LM | AS-Norm | vox1-O-clean | vox1-E-clean | vox1-H-clean |
-|:------|:------:|:------:|:--:|:-------:|:------------:|:------------:|:------------:|
+|:------:|:------:|:------:|:--:|:-------:|:------------:|:------------:|:------------:|
 | AAM | 0.2 |6.63M | × | × | 0.867 | 1.049 | 1.959 |
 |                      |    0.2 |  | × | √ | 0.787 | 0.964 | 1.726 |
 |                      |   0.5 |   | √ | × | 0.797 | 0.937 | 1.695 |
