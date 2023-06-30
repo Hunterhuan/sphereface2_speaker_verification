@@ -7,6 +7,10 @@ official implementation of sphereface2 for speaker verification in [Exploring Bi
 2. robust to noisy labels
 3. natural parallelization for the classifier layer
 
+## Running
+
+SphereFace2 has been supported in Wespeaker toolkit, see #173. Welcome to use wespeaker for developing and research.
+
 ## Results
 
 ResNet34-TSTP-emb256
