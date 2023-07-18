@@ -9,7 +9,7 @@ official implementation of sphereface2 for speaker verification in [Exploring Bi
 
 ## Running
 
-SphereFace2 has been supported in Wespeaker toolkit, see #173. Welcome to use wespeaker for developing and research.
+SphereFace2 has been supported in Wespeaker toolkit, see [#173](https://github.com/wenet-e2e/wespeaker/pull/173). Welcome to use wespeaker for developing and research.
 
 ## Results
 
